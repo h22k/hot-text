@@ -1,0 +1,21 @@
+module HotText {
+    header "module.h"
+    export *
+    
+    module Common {
+        module Views {
+            header "Presentation/Common/Views/ShortcutRecorder.h"
+            export *
+        }
+        
+        header "Presentation/Common/WindowManager.h"
+        export *
+    }
+    
+    module Domain {
+        module Services {
+            header "Domain/Services/ShortcutService.h"
+            export *
+        }
+    }
+} 

@@ -1,32 +1,16 @@
-//
-//  Hot_TextApp.swift
-//  Hot Text
-//
-//  Created by Halil Hakan Karabay on 25.12.2024.
-//
-
 import SwiftUI
-import SwiftData
 
 @main
-struct Hot_TextApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
-
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
-        .modelContainer(sharedModelContainer)
+class Hot_TextApp: NSObject, NSApplicationDelegate {
+    static func main() {
+        let app = NSApplication.shared
+        let delegate = AppDelegate()
+        app.delegate = delegate
+        app.run()
     }
-}
+    
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        // Initialize app delegate
+        _ = AppDelegate()
+    }
+} 
