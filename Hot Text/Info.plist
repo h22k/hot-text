@@ -2,13 +2,23 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>NSAppleEventsUsageDescription</key>
-    <string>Hot Text needs accessibility access to monitor keyboard events for text replacement.</string>
-    <key>NSAccessibilityUsageDescription</key>
-    <string>Hot Text needs accessibility access to monitor keyboard events for text replacement.</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.hottext.app</string>
+    <key>CFBundleName</key>
+    <string>Hot Text</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>$(MACOSX_DEPLOYMENT_TARGET)</string>
     <key>LSUIElement</key>
     <true/>
-    <key>LSBackgroundOnly</key>
+    <key>NSSupportsAutomaticTermination</key>
     <true/>
+    <key>NSSupportsSuddenTermination</key>
+    <true/>
+    <key>NSAppleEventsUsageDescription</key>
+    <string>Hot Text needs to monitor keyboard events to provide text replacement functionality.</string>
+    <key>NSAccessibilityUsageDescription</key>
+    <string>Hot Text needs Accessibility access to monitor keyboard events and perform text replacements.</string>
+    <key>NSInputMonitoringUsageDescription</key>
+    <string>Hot Text needs Input Monitoring permission to detect keyboard events in the background.</string>
 </dict>
 </plist> 

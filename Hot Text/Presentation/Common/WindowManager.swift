@@ -44,7 +44,7 @@ final class WindowManager: NSObject {
         
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            self.showConfigWindow(withSelectedText: selectedText)
+            self.showConfigWindow()
         }
     }
     
@@ -60,14 +60,14 @@ final class WindowManager: NSObject {
         window.setFrame(NSRect(x: x, y: y, width: windowFrame.width, height: windowFrame.height), display: true)
     }
     
-    func showConfigWindow(withSelectedText selectedText: String? = nil) {
+    func showConfigWindow() {
         if let existingWindow = configWindow {
             existingWindow.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
             return
         }
         
-        let configVC = TextReplacementConfigViewController(textReplacementService: TextReplacementService.shared, selectedText: selectedText)
+        let configVC = TextReplacementConfigViewController(textReplacementService: TextReplacementService.shared)
         configViewController = configVC
         
         let window = NSWindow(

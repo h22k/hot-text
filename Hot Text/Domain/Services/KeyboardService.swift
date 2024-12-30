@@ -1,80 +1,133 @@
 import Cocoa
+import Foundation
 
 final class KeyboardService {
     static let shared = KeyboardService()
     
     private var currentBuffer: String = ""
     private var isTracking = false
-    private var monitorEvent: Any?
-    private let replacementService = TextReplacementService.shared
-    private let shortcutService = ShortcutService.shared
+    private var monitorEvents: [Any] = []
+    private let replacementService: TextReplacementService
+    private let shortcutService: ShortcutService
     
     private init() {
+        print("🔄 Initializing KeyboardService")
+        self.replacementService = TextReplacementService.shared
+        self.shortcutService = ShortcutService.shared
         setupKeyboardMonitoring()
     }
     
     private func setupKeyboardMonitoring() {
+        print("⌨️ Setting up keyboard monitoring...")
+        
         // Setup keyboard monitoring only if we have permission
         if AXIsProcessTrusted() {
-            monitorEvent = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            print("✅ Accessibility permissions granted, setting up keyboard monitors")
+            
+            // Monitor for global keyDown events
+            let keyDownMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.keyDown]) { [weak self] event in
+                print("🎹 Global KeyDown event received - KeyCode: \(event.keyCode)")
                 self?.handleKeyPress(event)
             }
+            
+            if let monitor = keyDownMonitor {
+                monitorEvents.append(monitor)
+                print("✅ Global KeyDown monitor added")
+            } else {
+                print("❌ Failed to create global monitor")
+            }
+            
+            // Monitor for local keyDown events
+            let localKeyDownMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { [weak self] event in
+                print("🎹 Local KeyDown event received - KeyCode: \(event.keyCode)")
+                self?.handleKeyPress(event)
+                return event
+            }
+            
+            if let monitor = localKeyDownMonitor {
+                monitorEvents.append(monitor)
+                print("✅ Local KeyDown monitor added")
+            } else {
+                print("❌ Failed to create local monitor")
+            }
+            
+            print("✅ Keyboard monitoring setup complete with \(monitorEvents.count) monitors")
+        } else {
+            print("❌ Accessibility permissions NOT granted - keyboard monitoring will not work")
         }
     }
     
+    deinit {
+        // Clean up monitors
+        monitorEvents.forEach { NSEvent.removeMonitor($0) }
+        print("🧹 Cleaned up keyboard monitors")
+    }
+    
     private func handleKeyPress(_ event: NSEvent) {
-        guard let characters = event.characters else { return }
+        guard let characters = event.characters else {
+            print("⚠️ No characters in event")
+            return
+        }
         
-        print("Key pressed:", characters, "keyCode:", event.keyCode)
+        let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        print("🔑 Key Event - Char: \"\(characters)\", KeyCode: \(event.keyCode), Modifiers: \(modifiers)")
+        print("📊 Current State - isTracking: \(isTracking), Buffer: \"\(currentBuffer)\"")
         
         // Check for space or trigger key to stop tracking if we're not in a valid shortcut
-        if isTracking && (event.keyCode == 49 || shortcutService.isTriggerKey(event.keyCode)) {
+        if isTracking && (event.keyCode == Constants.Keyboard.spaceKeyCode || shortcutService.isTriggerKey(event.keyCode)) {
+            print("🔍 Checking replacement for buffer: \"\(currentBuffer)\"")
             if !replacementService.hasReplacement(for: currentBuffer) {
-                print("Invalid shortcut, stopping tracking. Buffer was:", currentBuffer)
+                print("❌ Invalid shortcut detected - Buffer: \"\(currentBuffer)\"")
                 isTracking = false
                 currentBuffer = ""
+            } else {
+                print("✨ Valid replacement found for: \"\(currentBuffer)\"")
             }
         }
         
         // Check for "/" to start tracking
-        if characters == "/" {
+        if characters == Constants.Keyboard.triggerCharacter {
             isTracking = true
-            currentBuffer = "/"
-            print("Started tracking with buffer:", currentBuffer)
+            currentBuffer = Constants.Keyboard.triggerCharacter
+            print("🎯 Started tracking with initial buffer: \"\(currentBuffer)\"")
             return
         }
         
         // Only process input if we're tracking (after seeing a /)
         if isTracking {
             if shortcutService.isTriggerKey(event.keyCode) {
-                print("Trigger key pressed. Current buffer:", currentBuffer)
+                print("⚡️ Trigger key pressed - Current buffer: \"\(currentBuffer)\"")
+                print("🔍 Searching for replacement - Key: \"\(currentBuffer)\"")
                 
-                print("Searching for key:", currentBuffer)
-                print("Available replacements:", replacementService.getAllReplacements())
+                let allReplacements = replacementService.getAllReplacements()
+                print("📚 Available replacements: \(allReplacements)")
+                print("🎯 Looking for key: \"\(currentBuffer)\" in replacements")
                 
                 if replacementService.performReplacement(for: currentBuffer) {
-                    print("Replacement performed")
+                    print("✅ Replacement performed successfully")
                 } else {
-                    print("No replacement found for:", currentBuffer)
+                    print("❌ No replacement found for: \"\(currentBuffer)\"")
                 }
                 
                 isTracking = false
                 currentBuffer = ""
-                print("Reset buffer and tracking")
-            } else if event.keyCode == 51 { // Backspace
+                print("🔄 Reset buffer and tracking state")
+            } else if event.keyCode == Constants.Keyboard.backspaceKeyCode {
                 if !currentBuffer.isEmpty {
                     currentBuffer.removeLast()
-                    print("Backspace pressed, new buffer:", currentBuffer)
+                    print("⌫ Backspace - New buffer: \"\(currentBuffer)\"")
                     if currentBuffer.isEmpty {
                         isTracking = false
-                        print("Buffer empty, stopped tracking")
+                        print("📴 Buffer empty - Stopped tracking")
                     }
                 }
             } else {
                 // Append character to buffer if it's a valid input
                 if characters.rangeOfCharacter(from: .whitespacesAndNewlines) == nil {
                     currentBuffer += characters
-                    print("Added to buffer:", currentBuffer)
+                    print("📝 Added to buffer: \"\(currentBuffer)\"")
+                } else {
+                    print("⚠️ Skipping whitespace character")
                 }
             }
         }

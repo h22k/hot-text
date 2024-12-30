@@ -113,7 +113,10 @@ final class ShortcutService {
         let pressedKeyCode = event.keyCode
         let pressedModifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
         
+        print("🎹 Global Shortcut Event - KeyCode: \(pressedKeyCode), Modifiers: \(pressedModifiers)")
+        
         if pressedKeyCode == currentKeyCode && pressedModifiers == currentModifierFlags {
+            print("🎯 Global Shortcut Triggered! KeyCode: \(pressedKeyCode), Modifiers: \(pressedModifiers)")
             DispatchQueue.main.async { [weak self] in
                 self?.shortcutHandler?()
             }

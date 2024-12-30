@@ -2,6 +2,8 @@ import Cocoa
 import SwiftUI
 import ServiceManagement
 import ApplicationServices
+import IOKit.hid
+import CoreGraphics
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
@@ -13,6 +15,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Set app to accessory mode (menu bar only)
         NSApp.setActivationPolicy(.accessory)
+        
+        // Check and request permissions
+        checkAndRequestPermissions()
         
         // Initialize services
         shortcutService.setupDefaultShortcut()
@@ -27,6 +32,108 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Setup app
         setupLoginItem()
         setupStatusItem()
+    }
+    
+    private func checkAndRequestPermissions() {
+        print("🔍 Starting permission checks...")
+        var missingPermissions: [String] = []
+        
+        // Force prompt for Accessibility permissions if needed
+        let axOptions = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true]
+        AXIsProcessTrustedWithOptions(axOptions as CFDictionary)
+        
+        // Check Accessibility permissions
+        let axEnabled = AXIsProcessTrusted()
+        print("🔐 Accessibility Status: \(axEnabled ? "Enabled" : "Disabled")")
+        if !axEnabled {
+            missingPermissions.append("Accessibility")
+        }
+        
+        // Check Input Monitoring permissions
+        let inputMonitoringEnabled = IOHIDRequestAccess(kIOHIDRequestTypeListenEvent)
+        print("🔐 Input Monitoring Status: \(inputMonitoringEnabled ? "Enabled" : "Disabled")")
+        if !inputMonitoringEnabled {
+            missingPermissions.append("Input Monitoring")
+        }
+        
+        // Check Apple Events permissions with prompt
+        let options = NSDictionary(dictionary: [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true])
+        let appleEventsEnabled = AXIsProcessTrustedWithOptions(options)
+        print("🔐 Apple Events Status: \(appleEventsEnabled ? "Enabled" : "Disabled")")
+        if !appleEventsEnabled {
+            missingPermissions.append("Apple Events")
+        }
+        
+        // Print current process information
+        if let bundleID = Bundle.main.bundleIdentifier {
+            print("📦 Bundle ID: \(bundleID)")
+        }
+        print("📍 Process Path: \(Bundle.main.bundlePath)")
+        print("🔑 Process ID: \(ProcessInfo.processInfo.processIdentifier)")
+        
+        // Try to create a test event monitor
+        let testMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.keyDown]) { _ in }
+        if testMonitor != nil {
+            print("✅ Test event monitor created successfully")
+            NSEvent.removeMonitor(testMonitor!)
+        } else {
+            print("⚠️ Failed to create test event monitor")
+        }
+        
+        if !missingPermissions.isEmpty {
+            print("❌ Missing permissions: \(missingPermissions.joined(separator: ", "))")
+            
+            DispatchQueue.main.async { [weak self] in
+                self?.showPermissionsAlert(missingPermissions: missingPermissions)
+            }
+        } else {
+            print("✅ All required permissions are granted")
+            
+            // Double check if we can actually monitor events
+            let eventMask: NSEvent.EventTypeMask = [.keyDown]
+            let monitorResult = NSEvent.addGlobalMonitorForEvents(matching: eventMask) { _ in }
+            if monitorResult != nil {
+                print("✅ Successfully created event monitor")
+                NSEvent.removeMonitor(monitorResult!)
+            } else {
+                print("⚠️ Failed to create event monitor despite having permissions")
+                DispatchQueue.main.async { [weak self] in
+                    self?.showPermissionsAlert(missingPermissions: ["Event Monitoring"])
+                }
+            }
+        }
+    }
+    
+    private func showPermissionsAlert(missingPermissions: [String]) {
+        let alert = NSAlert()
+        alert.messageText = "Additional Permissions Required"
+        alert.informativeText = """
+            Hot Text needs the following permissions to work properly:
+            
+            \(missingPermissions.map { "• \($0)" }.joined(separator: "\n"))
+            
+            Please enable these permissions in System Settings > Privacy & Security.
+            
+            After enabling the permissions, please quit and relaunch Hot Text.
+            
+            Note: If you've already granted these permissions, try removing and re-adding them.
+            """
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Open System Settings")
+        alert.addButton(withTitle: "Quit Hot Text")
+        alert.addButton(withTitle: "Later")
+        
+        NSApp.activate(ignoringOtherApps: true)
+        
+        let response = alert.runModal()
+        if response == .alertFirstButtonReturn {
+            // Open System Settings
+            let prefpaneURL = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy")!
+            NSWorkspace.shared.open(prefpaneURL)
+        } else if response == .alertSecondButtonReturn {
+            // Quit app
+            NSApplication.shared.terminate(nil)
+        }
     }
     
     func applicationWillTerminate(_ notification: Notification) {
@@ -86,8 +193,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc func showTextReplacementConfig() {
         NSApp.activate(ignoringOtherApps: true)
-        let selectedText = NSPasteboard.general.string(forType: .string)
-        windowManager.showConfigWindow(withSelectedText: selectedText)
+        windowManager.showConfigWindow()
     }
     
     @objc func showAllReplacements() {
@@ -106,49 +212,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     private func handleGlobalShortcut() {
-        // First try to get selected text from active application
-        let selectedText = getSelectedText()
-        
-        // Show config window with selected text
-        windowManager.showConfigWindow(withSelectedText: selectedText)
-    }
-    
-    private func getSelectedText() -> String? {
-        // Try to get selected text from active application
-        if let activeApp = NSWorkspace.shared.frontmostApplication {
-            let element = AXUIElementCreateApplication(activeApp.processIdentifier)
-            if let selectedText = try? getSelectedTextFromElement(element) {
-                return selectedText
-            }
-        }
-        
-        // Fallback to clipboard if no text is selected
-        return NSPasteboard.general.string(forType: .string)
-    }
-    
-    private func getSelectedTextFromElement(_ element: AXUIElement) throws -> String? {
-        var selectedTextValue: CFTypeRef?
-        let result = AXUIElementCopyAttributeValue(element, kAXSelectedTextAttribute as CFString, &selectedTextValue)
-        
-        if result == .success, 
-           let value = selectedTextValue,
-           let text = value as? String {
-            return text
-        }
-        
-        // If no direct selection, try to get focused element and its selection
-        var focusedElement: CFTypeRef?
-        if AXUIElementCopyAttributeValue(element, kAXFocusedUIElementAttribute as CFString, &focusedElement) == .success,
-           let focused = focusedElement,
-           CFGetTypeID(focused) == AXUIElementGetTypeID() {
-            let focusedUIElement = focused as! AXUIElement
-            var selectedText: CFTypeRef?
-            if AXUIElementCopyAttributeValue(focusedUIElement, kAXSelectedTextAttribute as CFString, &selectedText) == .success,
-               let value = selectedText {
-                return value as? String
-            }
-        }
-        
-        return nil
+        windowManager.showConfigWindow()
     }
 }
+

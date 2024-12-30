@@ -11,7 +11,6 @@ import Combine
 
 class TextReplacementConfigViewController: NSViewController {
     private let textReplacementService: TextReplacementService
-    private var selectedText: String?
     private var observers: [NSObjectProtocol] = []
     
     private lazy var contentStack: NSStackView = {
@@ -84,9 +83,8 @@ class TextReplacementConfigViewController: NSViewController {
         return button
     }()
     
-    init(textReplacementService: TextReplacementService, selectedText: String? = nil) {
+    init(textReplacementService: TextReplacementService) {
         self.textReplacementService = textReplacementService
-        self.selectedText = selectedText
         super.init(nibName: nil, bundle: nil)
         self.title = "Add Text Replacement"
     }
@@ -108,24 +106,23 @@ class TextReplacementConfigViewController: NSViewController {
         // Add form
         contentStack.addArrangedSubview(formStack)
         
-        // Add fields with labels
-        let shortcutStack = createFieldStack(label: "Shortcut:", field: shortcutField)
+        // Add fields to form
+        let shortcutStack = createFieldStack(label: "Shortcut", field: shortcutField)
+        let replacementStack = createFieldStack(label: "Replacement", field: replacementField)
+        
         formStack.addArrangedSubview(shortcutStack)
-        
-        let replacementStack = createFieldStack(label: "Replacement:", field: replacementField)
         formStack.addArrangedSubview(replacementStack)
-        
-        // Add button
         formStack.addArrangedSubview(addButton)
         
-        // Layout constraints
+        // Setup constraints
         NSLayoutConstraint.activate([
-            container.widthAnchor.constraint(equalToConstant: 600),
-            
+            contentStack.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 24),
+            contentStack.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -24),
             contentStack.topAnchor.constraint(equalTo: container.topAnchor, constant: 24),
-            contentStack.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 32),
-            contentStack.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -32),
             contentStack.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -24),
+            
+            container.widthAnchor.constraint(equalToConstant: 400),
+            container.heightAnchor.constraint(equalToConstant: 300),
             
             shortcutStack.widthAnchor.constraint(equalTo: formStack.widthAnchor),
             replacementStack.widthAnchor.constraint(equalTo: formStack.widthAnchor),
@@ -140,12 +137,9 @@ class TextReplacementConfigViewController: NSViewController {
         formStack.setCustomSpacing(24, after: replacementStack)
         formStack.alignment = .centerX
         
-        // Set initial values
-        if let selectedText = selectedText {
-            replacementField.stringValue = selectedText
-            shortcutField.becomeFirstResponder()
-        } else {
-            replacementField.becomeFirstResponder()
+        // Set initial focus
+        DispatchQueue.main.async { [weak self] in
+            self?.shortcutField.becomeFirstResponder()
         }
     }
     
