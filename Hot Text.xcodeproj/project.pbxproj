@@ -7,12 +7,25 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		ACEBD1492D1B632C00C6F090 /* Hot Text.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Hot Text.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		ACEBD1492D1B632C00C6F090 /* HotText.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HotText.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		AC2C20F42D2323BF00B10F68 /* Exceptions for "Hot Text" folder in "Hot Text" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = ACEBD1482D1B632C00C6F090 /* Hot Text */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		ACEBD14B2D1B632C00C6F090 /* Hot Text */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				AC2C20F42D2323BF00B10F68 /* Exceptions for "Hot Text" folder in "Hot Text" target */,
+			);
 			path = "Hot Text";
 			sourceTree = "<group>";
 		};
@@ -40,7 +53,7 @@
 		ACEBD14A2D1B632C00C6F090 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				ACEBD1492D1B632C00C6F090 /* Hot Text.app */,
+				ACEBD1492D1B632C00C6F090 /* HotText.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -67,7 +80,7 @@
 			packageProductDependencies = (
 			);
 			productName = "Hot Text";
-			productReference = ACEBD1492D1B632C00C6F090 /* Hot Text.app */;
+			productReference = ACEBD1492D1B632C00C6F090 /* HotText.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -259,6 +272,8 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = HotText;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -266,8 +281,8 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.hhk.hottext;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.hhk.hottex;
+				PRODUCT_NAME = HotText;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};
@@ -288,6 +303,8 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = HotText;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -295,8 +312,8 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.hhk.hottext;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.hhk.hottex;
+				PRODUCT_NAME = HotText;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};

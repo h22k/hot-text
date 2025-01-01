@@ -16,7 +16,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "ACEBD1482D1B632C00C6F090"
-               BuildableName = "Hot Text.app"
+               BuildableName = "HotText.app"
                BlueprintName = "Hot Text"
                ReferencedContainer = "container:Hot Text.xcodeproj">
             </BuildableReference>
@@ -31,7 +31,7 @@
       shouldAutocreateTestPlan = "YES">
    </TestAction>
    <LaunchAction
-      buildConfiguration = "Debug"
+      buildConfiguration = "Release"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
@@ -45,7 +45,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "ACEBD1482D1B632C00C6F090"
-            BuildableName = "Hot Text.app"
+            BuildableName = "HotText.app"
             BlueprintName = "Hot Text"
             ReferencedContainer = "container:Hot Text.xcodeproj">
          </BuildableReference>
@@ -62,7 +62,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "ACEBD1482D1B632C00C6F090"
-            BuildableName = "Hot Text.app"
+            BuildableName = "HotText.app"
             BlueprintName = "Hot Text"
             ReferencedContainer = "container:Hot Text.xcodeproj">
          </BuildableReference>
